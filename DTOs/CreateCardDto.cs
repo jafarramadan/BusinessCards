@@ -1,35 +1,36 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
-namespace BusinessCards.DTOs
+namespace BusinessCard.DTOs
 {
     public class CreateCardDto
     {
-        [Required]
+        public CreateMode Mode { get; set; } = CreateMode.Manual;
+
         [StringLength(100)]
-        public string Name { get; set; } = string.Empty;
+        public string? Name { get; set; } = string.Empty;
 
-        [Required]
         [StringLength(10)]
-        public string Gender { get; set; } = string.Empty;
+        public string? Gender { get; set; } = string.Empty;
 
-        [Required]
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
 
-        [Required]
         [EmailAddress]
         [StringLength(100)]
-        public string Email { get; set; } = string.Empty;
+        public string? Email { get; set; } = string.Empty;
 
-        [Required]
         [Phone]
         [StringLength(20)]
-        public string Phone { get; set; } = string.Empty;
+        public string? Phone { get; set; } = string.Empty;
 
-        [StringLength(1048576)] // Max 1MB base64 string
+        [StringLength(1048576)] 
         public string? Image { get; set; }
 
-        [Required]
         [StringLength(500)]
-        public string Address { get; set; } = string.Empty;
+        public string? Address { get; set; } = string.Empty;
+
+        public IFormFile? File { get; set; }
     }
 }
+
+

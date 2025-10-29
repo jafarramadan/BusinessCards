@@ -1,4 +1,4 @@
-﻿namespace BusinessCards.DTOs
+﻿namespace BusinessCard.DTOs
 {
     public class ExportCardDto
     {

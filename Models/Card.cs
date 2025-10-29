@@ -25,7 +25,7 @@ namespace BusinessCard.Models
         [StringLength(500)]
         public string Address { get; set; } = string.Empty;
 
-        [StringLength(1048576)] // Max 1MB base64 string
+        [StringLength(1048576)] 
         public string? Image { get; set; }
 
         public bool IsDeleted { get; set; } = false;
