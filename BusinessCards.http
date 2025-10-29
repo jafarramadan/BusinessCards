@@ -1,0 +1,6 @@
+@BusinessCards_HostAddress = http://localhost:5105
+
+GET {{BusinessCards_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
