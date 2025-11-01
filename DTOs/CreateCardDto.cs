@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http;
+using BusinessCards.Enums;
 
 namespace BusinessCard.DTOs
 {

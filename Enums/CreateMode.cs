@@ -1,4 +1,4 @@
-namespace BusinessCard.DTOs
+namespace BusinessCards.Enums
 {
     public enum CreateMode
     {
