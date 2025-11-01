@@ -1,6 +1,6 @@
 using BusinessCard.DTOs;
 using BusinessCard.Services;
-using BusinessCards.DTOs;
+using BusinessCards.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BusinessCard.Controllers
@@ -37,19 +37,39 @@ namespace BusinessCard.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<CardDto>> CreateCard(CreateCardDto createCardDto)
+        public async Task<IActionResult> CreateOrImport([FromForm] CreateCardDto form)
         {
             try
             {
-                if (!ModelState.IsValid)
+                if (form.Mode == CreateMode.ImportFromFile)
                 {
-                    return BadRequest(ModelState);
-                }
+                    if (form.File == null || form.File.Length == 0)
+                    {
+                        return BadRequest("File is required when Mode is ImportFromFile.");
+                    }
 
-                var createdCard = await _cardService.CreateCardAsync(createCardDto);
-                return CreatedAtAction(nameof(ViewCard), new { id = createdCard.Id }, createdCard);
+                    var allowedExtensions = new[] { ".xml", ".csv" };
+                    var fileExtension = Path.GetExtension(form.File.FileName).ToLowerInvariant();
+
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        return BadRequest("Only XML and CSV files are supported.");
+                    }
+
+                    var result = await _cardService.ImportCardsAsync(form.File);
+                    return Ok(result);
+                }
+                else
+                {
+                    var createdCard = await _cardService.CreateCardAsync(form);
+                    return CreatedAtAction(nameof(ViewCard), new { id = createdCard.Id }, createdCard);
+                }
             }
             catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -69,16 +89,19 @@ namespace BusinessCard.Controllers
         }
 
         [HttpGet("{id}/export")]
-        public async Task<ActionResult<ExportCardDto>> ExportCard(int id)
+        public async Task<IActionResult> ExportCard(int id)
         {
-            var card = await _cardService.ExportCardAsync(id);
-
-            if (card == null)
+            try
             {
-                return NotFound($"Card with ID {id} not found.");
+                var csvBytes = await _cardService.ExportSingleCardCsvAsync(id);
+                var fileName = $"business_card_{id}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+                
+                return File(csvBytes, "text/csv", fileName);
             }
-
-            return Ok(card);
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

@@ -15,7 +15,6 @@ namespace BusinessCard.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure Card entity
             modelBuilder.Entity<Card>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -47,14 +46,12 @@ namespace BusinessCard.Data
                 entity.Property(e => e.CreatedAt)
                     .IsRequired();
 
-                // Add indexes for better performance
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.HasIndex(e => e.Phone).IsUnique();
 
                 entity.Property(e => e.Image)
-                    .HasMaxLength(1048576); // Max 1MB base64 string
+                    .HasMaxLength(1048576); 
 
-                // Soft delete filter - exclude deleted cards by default
                 entity.HasQueryFilter(e => !e.IsDeleted);
             });
         }

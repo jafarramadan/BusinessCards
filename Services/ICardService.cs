@@ -1,5 +1,4 @@
 using BusinessCard.DTOs;
-using BusinessCards.DTOs;
 
 namespace BusinessCard.Services
 {
@@ -9,7 +8,9 @@ namespace BusinessCard.Services
         Task<CardDto?> GetCardByIdAsync(int id);
         Task<CardDto> CreateCardAsync(CreateCardDto createCardDto);
         Task<bool> DeleteCardAsync(int id);
-        Task<ExportCardDto?> ExportCardAsync(int id);
-        Task<bool> CardExistsAsync(int id);
+        Task<CardDto?> ExportCardAsync(int id);        
+        Task<ImportResultDto> ImportCardsAsync(IFormFile file);
+
+        Task<byte[]> ExportSingleCardCsvAsync(int id);
     }
 }
