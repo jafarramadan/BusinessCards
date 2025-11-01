@@ -110,7 +110,7 @@ namespace BusinessCard.Services
             }
         }
 
-        public async Task<ExportCardDto?> ExportCardAsync(int id)
+        public async Task<CardDto?> ExportCardAsync(int id)
         {
             try
             {
@@ -118,7 +118,7 @@ namespace BusinessCard.Services
                 if (card == null)
                     return null;
 
-                return new ExportCardDto
+                return new CardDto
                 {
                     Id = card.Id,
                     Name = card.Name,
@@ -146,18 +146,6 @@ namespace BusinessCard.Services
             catch (Exception ex)
             {
                 throw new Exception($"Error deleting card with ID {id}: {ex.Message}", ex);
-            }
-        }
-
-        public async Task<bool> CardExistsAsync(int id)
-        {
-            try
-            {
-                return await _cardRepository.ExistsAsync(id);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error checking if card with ID {id} exists: {ex.Message}", ex);
             }
         }
 
@@ -280,44 +268,6 @@ namespace BusinessCard.Services
             }
         }
 
-        public async Task<byte[]> ExportCardsAsync(ExportRequestDto exportRequest)
-        {
-            try
-            {
-                var cards = new List<Card>();
-
-                if (exportRequest.CardIds.Any())
-                {
-                    // Export specific cards
-                    foreach (var id in exportRequest.CardIds)
-                    {
-                        var card = await _cardRepository.GetByIdAsync(id);
-                        if (card != null)
-                            cards.Add(card);
-                    }
-                }
-                else
-                {
-                    // Export all cards
-                    cards = (await _cardRepository.GetAllAsync()).ToList();
-                }
-
-                return exportRequest.Format.ToLowerInvariant() switch
-                {
-                    "xml" => GenerateXmlExport(cards),
-                    "csv" => GenerateCsvExport(cards),
-                    _ => throw new ArgumentException($"Unsupported export format: {exportRequest.Format}")
-                };
-            }
-            catch (ArgumentException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error exporting cards: {ex.Message}", ex);
-            }
-        }
 
         public async Task<byte[]> ExportSingleCardCsvAsync(int id)
         {
@@ -329,7 +279,7 @@ namespace BusinessCard.Services
                     throw new ArgumentException($"Card with ID {id} not found.");
                 }
 
-                return GenerateCsvExportFromDtos(new List<ExportCardDto> { dto });
+                return GenerateCsvExportFromDtos(new List<CardDto> { dto });
             }
             catch (ArgumentException)
             {
@@ -545,51 +495,7 @@ namespace BusinessCard.Services
             return result.ToArray();
         }
 
-        private byte[] GenerateXmlExport(List<Card> cards)
-        {
-            var xmlDoc = new XmlDocument();
-            var root = xmlDoc.CreateElement("BusinessCards");
-            xmlDoc.AppendChild(root);
-
-            foreach (var card in cards)
-            {
-                var cardElement = xmlDoc.CreateElement("Card");
-                
-                AddXmlElement(xmlDoc, cardElement, "Id", card.Id.ToString());
-                AddXmlElement(xmlDoc, cardElement, "Name", card.Name);
-                AddXmlElement(xmlDoc, cardElement, "Gender", card.Gender);
-                AddXmlElement(xmlDoc, cardElement, "DateOfBirth", card.DateOfBirth.ToString("yyyy-MM-dd"));
-                AddXmlElement(xmlDoc, cardElement, "Email", card.Email);
-                AddXmlElement(xmlDoc, cardElement, "Phone", card.Phone);
-                AddXmlElement(xmlDoc, cardElement, "Address", card.Address);
-                AddXmlElement(xmlDoc, cardElement, "Image", card.Image ?? "");
-                AddXmlElement(xmlDoc, cardElement, "CreatedAt", card.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ"));
-
-                root.AppendChild(cardElement);
-            }
-
-            using var stream = new MemoryStream();
-            xmlDoc.Save(stream);
-            return stream.ToArray();
-        }
-
-        private byte[] GenerateCsvExport(List<Card> cards)
-        {
-            var csv = new StringBuilder();
-            
-            // Header
-            csv.AppendLine("Id,Name,Gender,DateOfBirth,Email,Phone,Address,Image,CreatedAt");
-
-            // Data rows
-            foreach (var card in cards)
-            {
-                csv.AppendLine($"{card.Id},{EscapeCsvValue(card.Name)},{EscapeCsvValue(card.Gender)},{card.DateOfBirth:yyyy-MM-dd},{EscapeCsvValue(card.Email)},{EscapeCsvValue(card.Phone)},{EscapeCsvValue(card.Address)},{EscapeCsvValue(card.Image ?? "")},{card.CreatedAt:yyyy-MM-ddTHH:mm:ssZ}");
-            }
-
-            return Encoding.UTF8.GetBytes(csv.ToString());
-        }
-
-        private byte[] GenerateCsvExportFromDtos(List<ExportCardDto> cards)
+        private byte[] GenerateCsvExportFromDtos(List<CardDto> cards)
         {
             var csv = new StringBuilder();
             csv.AppendLine("Id,Name,Gender,DateOfBirth,Email,Phone,Address,Image,CreatedAt");
@@ -600,13 +506,6 @@ namespace BusinessCard.Services
             }
 
             return Encoding.UTF8.GetBytes(csv.ToString());
-        }
-
-        private void AddXmlElement(XmlDocument doc, XmlElement parent, string name, string value)
-        {
-            var element = doc.CreateElement(name);
-            element.InnerText = value;
-            parent.AppendChild(element);
         }
 
         private string EscapeCsvValue(string value)

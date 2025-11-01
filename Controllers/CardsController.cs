@@ -40,11 +40,6 @@ namespace BusinessCard.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
                 if (form.Mode == CreateMode.ImportFromFile)
                 {
                     if (form.File == null || form.File.Length == 0)
